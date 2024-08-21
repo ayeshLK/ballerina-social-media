@@ -9,22 +9,16 @@ services:
       - "3001:3001"
     network_mode: "host"
 
-  # social-media:
-  #   image: "wso2/social-media:0.0.1"
-  #   ports:
-  #     - "9095:9095"
-  #   depends_on: 
-  #     sentiment-analysis: 
-  #         condition: service_started
-  #     mysql: 
-  #         condition: service_healthy
-  #     jaeger: 
-  #         condition: service_started
-  #     prometheus: 
-  #         condition: service_started
-  #     grafana: 
-  #         condition: service_started
-  #   network_mode: "host"
+  social-media:
+    image: "wso2/social-media:0.0.1"
+    ports:
+      - "9095:9095"
+    depends_on: 
+      sentiment-analysis: 
+          condition: service_started
+      mysql: 
+          condition: service_healthy
+    network_mode: "host"
 
   sentiment-analysis:
     image: "wso2/sentiment-api:0.0.1"
