@@ -38,6 +38,18 @@ public type NewPost record {|
     string category;
 |};
 
+type PostWithMeta record {|
+    int id;
+    string description;
+    string author;
+    record {|
+        string[] tags;
+        string category;
+        @sql:Column {name: "created_time_stamp"}
+        time:Civil createdTimeStamp;
+    |} meta;
+|};
+
 type Probability record {
     decimal neg;
     decimal neutral;
@@ -104,4 +116,32 @@ service /social\-media on new http:Listener(9095) {
             VALUES (${newPost.description}, ${newPost.category}, CURRENT_TIMESTAMP(), ${newPost.tags}, ${id});`);
         return http:CREATED;
     }
+
+    resource function get users/[int id]/posts() returns PostWithMeta[]|http:NotFound|error {
+        User|error result = socialMediaDb->queryRow(`SELECT * FROM users WHERE id = ${id}`);
+        if result is sql:NoRowsError {
+            return http:NOT_FOUND;
+        }
+        if result is error {
+            return result;
+        }
+
+        stream<Post, sql:Error?> postStream = socialMediaDb->query(`SELECT id, description, category, created_time_stamp, tags FROM posts WHERE user_id = ${id}`);
+        Post[]|error posts = from Post post in postStream
+            select post;
+
+        return mapPostToPostWithMeta(check posts, result.name);
+    }
 }
+
+function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta[] => from var postItem in posts
+    select {
+        id: postItem.id,
+        description: postItem.description,
+        author,
+        meta: {
+            tags: re `,`.split(postItem.tags),
+            category: postItem.category,
+            createdTimeStamp: postItem.createdTimeStamp
+        }
+    };
