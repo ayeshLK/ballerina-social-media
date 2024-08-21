@@ -70,7 +70,7 @@ service /social\-media on new http:Listener(9095) {
                 where post.userId == user.id select post;
             allUserPosts.push(...userPosts);
         }
-        return postTable.toArray();
+        return allUserPosts;
     }
 
     resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
