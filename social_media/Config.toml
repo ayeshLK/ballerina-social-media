@@ -1,0 +1,5 @@
+host = "localhost"
+user = "social_media_user"
+password = "dummypassword"
+database = "social_media_database"
+port = 3306
