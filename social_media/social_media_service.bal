@@ -18,6 +18,21 @@ type NewUser record {|
     string mobileNumber;
 |};
 
+type Post record {|
+    readonly int id;
+    string description;
+    string tags;
+    string category;
+    time:Civil createdTimeStamp;
+|};
+table<Post> key(id) postTable = table [];
+
+public type NewPost record {|
+    string description;
+    string tags;
+    string category;
+|};
+
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"]
@@ -44,6 +59,27 @@ service /social\-media on new http:Listener(9095) {
             mobileNumber: newUser.mobileNumber
         };
         userTable.add(user);
+        return http:CREATED;
+    }
+
+    resource function get posts() returns Post[]|error {
+        return postTable.toArray();
+    }
+
+    resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
+        User? user = userTable[id];
+        if user is () {
+            return http:NOT_FOUND;
+        }
+
+        Post post = {
+            id: postTable.length() + 1,
+            createdTimeStamp: time:utcToCivil(time:utcNow()),
+            description: newPost.description,
+            tags: newPost.tags,
+            category: newPost.category
+        };
+        postTable.add(post);
         return http:CREATED;
     }
 }
