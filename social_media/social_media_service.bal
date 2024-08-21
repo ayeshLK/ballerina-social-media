@@ -38,18 +38,6 @@ public type NewPost record {|
     string category;
 |};
 
-type PostWithMeta record {|
-    int id;
-    string description;
-    string author;
-    record {|
-        string[] tags;
-        string category;
-        @sql:Column {name: "created_time_stamp"}
-        time:Civil createdTimeStamp;
-    |} meta;
-|};
-
 type Probability record {
     decimal neg;
     decimal neutral;
@@ -97,6 +85,22 @@ service /social\-media on new http:Listener(9095) {
         return http:CREATED;
     }
 
+    resource function get posts() returns PostWithMeta[]|error {
+        stream<User, sql:Error?> userStream = socialMediaDb->query(`SELECT * FROM users`);
+        PostWithMeta[] posts = [];
+        User[] users = check from User user in userStream
+            select user;
+
+        foreach User user in users {
+            stream<Post, sql:Error?> postStream = socialMediaDb->query(`SELECT id, description, category, created_time_stamp, tags FROM posts WHERE user_id = ${user.id}`);
+            Post[]|error userPosts = from Post post in postStream
+                select post;
+            PostWithMeta[] postsWithMeta = mapPostToPostWithMeta(check userPosts, user.name);
+            posts.push(...postsWithMeta);
+        }
+        return posts;
+    }
+
     resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
         User|error user = socialMediaDb->queryRow(`SELECT * FROM users WHERE id = ${id}`);
         if user is sql:NoRowsError {
@@ -116,22 +120,6 @@ service /social\-media on new http:Listener(9095) {
             VALUES (${newPost.description}, ${newPost.category}, CURRENT_TIMESTAMP(), ${newPost.tags}, ${id});`);
         return http:CREATED;
     }
-
-    resource function get users/[int id]/posts() returns PostWithMeta[]|http:NotFound|error {
-        User|error result = socialMediaDb->queryRow(`SELECT * FROM users WHERE id = ${id}`);
-        if result is sql:NoRowsError {
-            return http:NOT_FOUND;
-        }
-        if result is error {
-            return result;
-        }
-
-        stream<Post, sql:Error?> postStream = socialMediaDb->query(`SELECT id, description, category, created_time_stamp, tags FROM posts WHERE user_id = ${id}`);
-        Post[]|error posts = from Post post in postStream
-            select post;
-
-        return mapPostToPostWithMeta(check posts, result.name);
-    }
 }
 
 function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta[] => from var postItem in posts
@@ -140,7 +128,7 @@ function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta
         description: postItem.description,
         author,
         meta: {
-            tags: re `,`.split(postItem.tags),
+            tags: regex:split(postItem.tags, ","),
             category: postItem.category,
             createdTimeStamp: postItem.createdTimeStamp
         }
