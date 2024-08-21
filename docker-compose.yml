@@ -26,11 +26,11 @@ services:
   #         condition: service_started
   #   network_mode: "host"
 
-  # sentiment-analysis:
-  #   image: "wso2/sentiment-api:0.0.1"
-  #   ports:
-  #     - "9098:9098"
-  #   network_mode: "host"
+  sentiment-analysis:
+    image: "wso2/sentiment-api:0.0.1"
+    ports:
+      - "9098:9098"
+    network_mode: "host"
 
   # mysql:
   #   image: "mysql:8-oracle"
