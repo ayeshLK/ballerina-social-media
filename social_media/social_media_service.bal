@@ -38,6 +38,18 @@ public type NewPost record {|
     string category;
 |};
 
+type PostWithMeta record {|
+    int id;
+    string description;
+    string author;
+    record {|
+        string[] tags;
+        string category;
+        @sql:Column {name: "created_time_stamp"}
+        time:Civil createdTimeStamp;
+    |} meta;
+|};
+
 type Probability record {
     decimal neg;
     decimal neutral;
@@ -128,7 +140,7 @@ function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta
         description: postItem.description,
         author,
         meta: {
-            tags: regex:split(postItem.tags, ","),
+            tags: re `,`.split(postItem.tags),
             category: postItem.category,
             createdTimeStamp: postItem.createdTimeStamp
         }
