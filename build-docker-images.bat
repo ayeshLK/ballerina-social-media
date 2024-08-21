@@ -13,5 +13,5 @@
 @REM limitations under the License.
 @REM 
 
-@REM cd sentiment_api && call bal clean & call bal build
-@REM cd ../social_media && call bal clean & call bal build
+cd sentiment_api && call bal clean & call bal build
+cd ../social_media && call bal clean & call bal build
