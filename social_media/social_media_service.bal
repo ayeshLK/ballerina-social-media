@@ -24,13 +24,13 @@ type NewUser record {|
 |};
 
 type Post record {|
-    readonly int id;
+    int id;
     string description;
     string tags;
     string category;
+    @sql:Column {name: "created_time_stamp"}
     time:Civil createdTimeStamp;
 |};
-table<Post> key(id) postTable = table [];
 
 public type NewPost record {|
     string description;
