@@ -30,17 +30,18 @@ service /social\-media on new http:Listener(9095) {
 
     resource function get users/[int id]() returns User|http:NotFound|error {
         User? user = userTable[id];
-        if user is User {
-            return user;
-        } else {
+        if user is () {
             return http:NOT_FOUND;
         }
+        return user;
     }
 
     resource function post users(NewUser newUser) returns http:Created|error {
         User user = { 
             id: userTable.length() + 1, 
-            ...newUser
+            name: newUser.name,
+            birthDate: newUser.birthDate,
+            mobileNumber: newUser.mobileNumber
         };
         userTable.add(user);
         return http:CREATED;
