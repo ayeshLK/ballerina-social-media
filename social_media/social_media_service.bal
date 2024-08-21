@@ -1,16 +1,21 @@
 import ballerina/http;
 import ballerina/time;
+import ballerinax/mysql;
+import ballerina/sql;
+import ballerinax/mysql.driver as _;
 
 type User record {|
     readonly int id;
     string name;
+    @sql:Column {
+        name: "birth_date"
+    }
     time:Date birthDate;
+    @sql:Column {
+        name: "mobile_number"
+    }
     string mobileNumber;
 |};
-table<User> key(id) userTable = table [
-    {id: 1, name: "John Doe", birthDate: {year:1987, month:2, day:6 }, mobileNumber: "0712345678"},
-    {id: 2, name: "Jane Doe", birthDate: {year:1988, month:3, day:7 }, mobileNumber: "0712345679"}
-];
 
 type NewUser record {|
     string name;
@@ -45,6 +50,13 @@ type Sentiment record {
 };
 final http:Client sentimentEp = check new("localhost:9098/text-processing");
 
+configurable string host = ?;
+configurable string user = ?;
+configurable string password = ?;
+configurable string database = ?;
+configurable int port = ?;
+final mysql:Client socialMediaDb = check new (host, user, password, database, port);
+
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"]
@@ -52,31 +64,34 @@ final http:Client sentimentEp = check new("localhost:9098/text-processing");
 }
 service /social\-media on new http:Listener(9095) { 
     resource function get users() returns User[]|error {
-        return userTable.toArray();
+        stream<User, sql:Error?> query = socialMediaDb->query(`SELECT * FROM users`);
+        User[] users = check from User user in query select user;
+        return users;
     }
 
     resource function get users/[int id]() returns User|http:NotFound|error {
-        User? user = userTable[id];
-        if user is User {
-            return user;
-        } else {
+        User|sql:Error queryRow = socialMediaDb->queryRow(`SELECT * FROM users WHERE id = ${id}`);
+        if queryRow is sql:NoRowsError {
             return http:NOT_FOUND;
+        } else {
+            return queryRow;
         }
     }
 
     resource function post users(NewUser newUser) returns http:Created|error {
-        User user = { 
-            id: userTable.length() + 1, 
-            ...newUser
-        };
-        userTable.add(user);
+        _ = check socialMediaDb->execute(`
+            INSERT INTO users(birth_date, name, mobile_number)
+            VALUES (${newUser.birthDate}, ${newUser.name}, ${newUser.mobileNumber});`);
         return http:CREATED;
     }
 
     resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
-        User? user = userTable[id];
-        if user is () {
+        User|error user = socialMediaDb->queryRow(`SELECT * FROM users WHERE id = ${id}`);
+        if user is sql:NoRowsError {
             return http:NOT_FOUND;
+        }
+        if user is error {
+            return user;
         }
 
         Sentiment sentiment = check sentimentEp->/api/sentiment.post({ "text": newPost.description });
@@ -84,12 +99,9 @@ service /social\-media on new http:Listener(9095) {
             return http:FORBIDDEN;
         }
 
-        Post post = {
-            id: postTable.length() + 1,
-            createdTimeStamp: time:utcToCivil(time:utcNow()),
-            ...newPost
-        };
-        postTable.add(post);
+        _ = check socialMediaDb->execute(`
+            INSERT INTO posts(description, category, created_time_stamp, tags, user_id)
+            VALUES (${newPost.description}, ${newPost.category}, CURRENT_TIMESTAMP(), ${newPost.tags}, ${id});`);
         return http:CREATED;
     }
 }
