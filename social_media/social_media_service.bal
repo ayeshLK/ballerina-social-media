@@ -67,7 +67,9 @@ service /social\-media on new http:Listener(9095) {
     resource function post users(NewUser newUser) returns http:Created|error {
         User user = { 
             id: userTable.length() + 1, 
-            ...newUser
+            name: newUser.name,
+            birthDate: newUser.birthDate,
+            mobileNumber: newUser.mobileNumber
         };
         userTable.add(user);
         return http:CREATED;
