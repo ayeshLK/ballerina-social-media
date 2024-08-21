@@ -73,6 +73,10 @@ service /social\-media on new http:Listener(9095) {
         return http:CREATED;
     }
 
+    resource function get posts() returns Post[]|error {
+        return postTable.toArray();
+    }
+
     resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
         User? user = userTable[id];
         if user is () {
