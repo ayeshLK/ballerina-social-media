@@ -20,6 +20,7 @@ type NewUser record {|
 
 type Post record {|
     readonly int id;
+    int userId;
     string description;
     string tags;
     string category;
@@ -57,11 +58,10 @@ service /social\-media on new http:Listener(9095) {
 
     resource function get users/[int id]() returns User|http:NotFound|error {
         User? user = userTable[id];
-        if user is User {
-            return user;
-        } else {
+        if user is () {
             return http:NOT_FOUND;
         }
+        return user;
     }
 
     resource function post users(NewUser newUser) returns http:Created|error {
@@ -76,6 +76,12 @@ service /social\-media on new http:Listener(9095) {
     }
 
     resource function get posts() returns Post[]|error {
+        Post[] allUserPosts = [];
+        foreach User user in userTable {
+            Post[] userPosts = from Post post in postTable 
+                where post.userId == user.id select post;
+            allUserPosts.push(...userPosts);
+        }
         return postTable.toArray();
     }
 
@@ -92,8 +98,11 @@ service /social\-media on new http:Listener(9095) {
 
         Post post = {
             id: postTable.length() + 1,
+            userId: id,
             createdTimeStamp: time:utcToCivil(time:utcNow()),
-            ...newPost
+            description: newPost.description,
+            tags: newPost.tags,
+            category: newPost.category
         };
         postTable.add(post);
         return http:CREATED;
