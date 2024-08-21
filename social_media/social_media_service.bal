@@ -41,7 +41,6 @@ type PostWithMeta record {|
     record {|
         string[] tags;
         string category;
-        @sql:Column {name: "created_time_stamp"}
         time:Civil createdTimeStamp;
     |} meta;
 |};
@@ -95,7 +94,7 @@ service /social\-media on new http:Listener(9095) {
             PostWithMeta[] postsWithMeta = mapPostToPostWithMeta(check userPosts, user.name);
             allUserPosts.push(...postsWithMeta);
         }
-        return postTable.toArray();
+        return allUserPosts;
     }
 
     resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error {
@@ -128,7 +127,7 @@ function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta
         description: postItem.description,
         author,
         meta: {
-            tags: regex:split(postItem.tags, ","),
+            tags: re `,`.split(postItem.tags),
             category: postItem.category,
             createdTimeStamp: postItem.createdTimeStamp
         }
