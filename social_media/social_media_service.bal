@@ -97,6 +97,12 @@ service /social\-media on new http:Listener(9095) {
         return http:CREATED;
     }
 
+    resource function delete users/[int id]() returns http:NoContent|error {
+        _ = check socialMediaDb->execute(`
+            DELETE FROM users WHERE id = ${id};`);
+        return http:NO_CONTENT;
+    }
+    
     resource function get posts() returns PostWithMeta[]|error {
         stream<User, sql:Error?> userStream = socialMediaDb->query(`SELECT * FROM users`);
         PostWithMeta[] posts = [];
