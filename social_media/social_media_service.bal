@@ -74,7 +74,7 @@ final mysql:Client socialMediaDb = check new (host, user, password, database, po
         allowOrigins: ["*"]
     }
 }
-service /social\-media on new http:Listener(9095) { 
+service /socialmedia on new http:Listener(9095) { 
     resource function get users() returns User[]|error {
         stream<User, sql:Error?> query = socialMediaDb->query(`SELECT * FROM users`);
         User[] users = check from User user in query select user;
