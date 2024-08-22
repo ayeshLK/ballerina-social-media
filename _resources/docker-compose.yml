@@ -1,0 +1,10 @@
+version: "2.14.0"
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    network_mode: "host"
