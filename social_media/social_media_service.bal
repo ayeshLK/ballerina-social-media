@@ -45,7 +45,6 @@ type PostWithMeta record {|
     record {|
         string[] tags;
         string category;
-        @sql:Column {name: "created_time_stamp"}
         time:Civil createdTimeStamp;
     |} meta;
 |};
