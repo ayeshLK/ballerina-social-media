@@ -86,13 +86,20 @@ service /social\-media on new http:Listener(9095) {
         return http:CREATED;
     }
 
+    resource function delete users/[int id]() returns http:NoContent|error {
+        User? removedUser = userTable.removeIfHasKey(id);
+        return http:NO_CONTENT;
+    }
+
     resource function get posts() returns PostWithMeta[]|error {
         PostWithMeta[] allUserPosts = [];
         foreach User user in userTable {
             Post[] userPosts = from Post post in postTable 
                 where post.userId == user.id select post;
-            PostWithMeta[] postsWithMeta = mapPostToPostWithMeta(check userPosts, user.name);
-            allUserPosts.push(...postsWithMeta);
+            foreach Post post in userPosts {
+                PostWithMeta postsWithMeta = mapPostToPostWithMeta(post, user.name);
+                allUserPosts.push(postsWithMeta);
+            }
         }
         return allUserPosts;
     }
@@ -121,14 +128,13 @@ service /social\-media on new http:Listener(9095) {
     }
 }
 
-function mapPostToPostWithMeta(Post[] posts, string author) returns PostWithMeta[] => from var postItem in posts
-    select {
-        id: postItem.id,
-        description: postItem.description,
-        author,
-        meta: {
-            tags: re `,`.split(postItem.tags),
-            category: postItem.category,
-            createdTimeStamp: postItem.createdTimeStamp
-        }
-    };
+function mapPostToPostWithMeta(Post post, string author) returns PostWithMeta => {
+    id: post.id,
+    description: post.description,
+    author,
+    meta: {
+        tags: re `,`.split(post.tags),
+        category: post.category,
+        createdTimeStamp: post.createdTimeStamp
+    }
+};
