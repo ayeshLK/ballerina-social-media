@@ -40,7 +40,7 @@ Following are the features covered by the scenario.
 
 1. Checkout the code base and move to the root folder
 2. Execute `./_resources/build-docker-images.sh` script to generate the necessary docker images.
-3. Execute `docker compose up -f ./_resources/docker-compose.yml`
+3. Execute `docker compose -f ./_resources/docker-compose.yml up`
 
 ### Without Docker Compose
 
@@ -49,6 +49,6 @@ Following are the features covered by the scenario.
 
 ## Try out
 
-- To start the completed setup run `docker compose up -f ./_resources/docker-compose.yml`
+- To start the completed setup run `docker compose -f ./_resources/docker-compose.yml up`
 - To send request open `social-media-request.http` file using VS Code with `REST Client` extension
 - To open the frontend type `http://localhost:3001`in the browser
