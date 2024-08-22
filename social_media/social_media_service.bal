@@ -73,7 +73,9 @@ service /social\-media on new http:Listener(9095) {
         foreach User user in userTable {
             Post[] userPosts = from Post post in postTable 
                 where post.userId == user.id select post;
-            allUserPosts.push(...userPosts);
+            foreach Post post in userPosts {
+                allUserPosts.push(post);
+            }
         }
         return allUserPosts;
     }
