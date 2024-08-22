@@ -39,7 +39,7 @@ public type NewPost record {|
         allowOrigins: ["*"]
     }
 }
-service /social\-media on new http:Listener(9095) {
+service /socialmedia on new http:Listener(9095) { 
     resource function get users() returns User[]|error {
         return userTable.toArray();
     }
