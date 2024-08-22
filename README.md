@@ -38,16 +38,16 @@ Following are the features covered by the scenario.
 ### With Docker Compose
 
 1. Checkout the code base and move to the root folder
-2. Execute `build-docker-images.sh` script to generate the necessary docker images.
-3. Execute `docker compose up`
+2. Execute `./_resources/build-docker-images.sh` script to generate the necessary docker images.
+3. Execute `docker compose up -f ./_resources/docker-compose.yml`
 
 ### Without Docker Compose
 
 1. Setup a MySQL database
-2. Execute the script `init.sql` in db-setup
+2. Execute the script `init.sql` in `_resources/db-setup` directory
 
 ## Try out
 
-- To start the completed setup run `docker compose up -f docker-compose-complete.yml`
+- To start the completed setup run `docker compose up -f ./_resources/docker-compose.yml`
 - To send request open `social-media-request.http` file using VS Code with `REST Client` extension
 - To open the frontend type `http://localhost:3001`in the browser
