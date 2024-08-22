@@ -18,12 +18,10 @@ type SocialMedia service object {
     resource function get users() returns User[]|error;
     resource function get users/[int id]() returns User|http:NotFound|error;
     resource function post users(NewUser newUser) returns http:Created|error;
-    resource function delete users/[int id]() returns http:NoContent|error;
 
     // posts resource
     resource function get posts() returns PostWithMeta[]|error;
-    resource function get users/[int id]/posts() returns PostMeta[]|UserNotFound|error;
-    resource function post users/[int id]/posts(NewPost newPost) returns http:Created|UserNotFound|PostForbidden|error;
+    resource function post users/[int id]/posts(NewPost newPost) returns http:Created|http:NotFound|http:Forbidden|error;
 };
 ```
 
