@@ -63,6 +63,11 @@ service /social\-media on new http:Listener(9095) {
         return http:CREATED;
     }
 
+    resource function delete users/[int id]() returns http:NoContent|error {
+        User? removedUser = userTable.removeIfHasKey(id);
+        return http:NO_CONTENT;
+    }
+
     resource function get posts() returns Post[]|error {
         Post[] allUserPosts = [];
         foreach User user in userTable {
