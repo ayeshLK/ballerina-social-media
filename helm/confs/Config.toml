@@ -1,0 +1,5 @@
+host = {{ .Values.service.config.mysql.host | quote }}
+user = {{ .Values.service.config.mysql.user | quote }}
+password = {{ .Values.service.config.mysql.password | quote }}
+database = {{ .Values.service.config.mysql.database | quote }}
+port = {{ .Values.service.config.mysql.port }}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: socialmedia-cm
+  namespace : {{ .Release.Namespace }}
+data:
+  Config.toml: {{ tpl (.Files.Get "confs/Config.toml") . | quote }}
