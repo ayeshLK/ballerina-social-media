@@ -11,8 +11,6 @@ service:
   targetPort: 9095
 
 ingress:
-  enabled: true
-  annotations: {}
   hosts:
     - host: ballerina-socia-media.local
       paths:
