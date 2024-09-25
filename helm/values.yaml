@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: wso2/social-media
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 9095
+
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: ballerina-socia-media.local
+      paths:
+        - path: /socialmedia
+          pathType: Prefix
+  tls: []
