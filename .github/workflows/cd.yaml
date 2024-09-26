@@ -1,0 +1,45 @@
+name: CD workflow
+
+on:
+  workflow_run:
+    workflows: ["CI workflow"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout to the repository
+      uses: actions/checkout@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Login to Azure cluster
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - name: Get K8s context
+      uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ env.RESOURCE_GROUP }}
+        cluster-name: ${{ env.CLUSTER_NAME }}
+    - name: Configure deployment
+      uses: azure/k8s-bake@v3
+      with:
+        renderEngine: 'helm'
+        helmChart: './helm/'
+        helm-version: 'latest'
+        silent: 'false'
+      id: bake
+    - name: Deploy application
+      uses: azure/k8s-deploy@v5
+      with:
+        manifests: ${{ steps.bake.outputs.manifestsBundle }}
+        imagepullsecrets: |
+          ${{ secrets.DOCKER_HUB_SECRET }}
